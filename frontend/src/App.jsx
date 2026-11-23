@@ -1,121 +1,82 @@
 import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { Routes, Route } from 'react-router-dom'
 import './App.css'
 
+import { sampleTransactions } from './data/sampleData'
+
+import Header from './components/Header/Header.jsx'
+import Footer from './components/Footer/Footer.jsx'
+import Home from './components/Home/Home.jsx'
+import About from './components/About/About.jsx'
+import Dashboard from './components/Dashboard/Dashboard.jsx'
+import AddTransaction from './components/AddTransaction/AddTransaction.jsx'
+import TransactionHistory from './components/TransactionHistory/TransactionHistory.jsx'
+import Login from './Authorization/Login/Login.jsx'
+import Signup from './Authorization/Signup/Signup.jsx'
+
 function App() {
-  const [count, setCount] = useState(0)
+  // SHARED STATE: every page that needs transactions gets them from here
+  const [transactions, setTransactions] = useState(sampleTransactions)
+
+  // Frontend-only login demo (no backend yet): null means logged out
+  const [user, setUser] = useState(null)
+
+  // Add a new transaction at the top of the list
+  const addTransaction = (newTransaction) => {
+    const transactionWithId = { ...newTransaction, id: Date.now() }
+    setTransactions([transactionWithId, ...transactions])
+  }
+
+  // Delete: keep every transaction except the one with this id
+  const deleteTransaction = (id) => {
+    setTransactions(transactions.filter((t) => t.id !== id))
+  }
+
+  // Edit: replace the transaction that has the same id
+  const updateTransaction = (updatedTransaction) => {
+    setTransactions(
+      transactions.map((t) =>
+        t.id === updatedTransaction.id ? updatedTransaction : t
+      )
+    )
+  }
+
+  const handleLogin = (loggedInUser) => setUser(loggedInUser)
+  const handleLogout = () => setUser(null)
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app-layout">
+      <Header user={user} onLogout={handleLogout} />
 
-      <div className="ticks"></div>
+      <main className="page-content">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/login" element={<Login onLogin={handleLogin} />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route
+            path="/dashboard"
+            element={<Dashboard transactions={transactions} user={user} />}
+          />
+          <Route
+            path="/add-transaction"
+            element={<AddTransaction onAdd={addTransaction} />}
+          />
+          <Route
+            path="/transactions"
+            element={
+              <TransactionHistory
+                transactions={transactions}
+                onDelete={deleteTransaction}
+                onUpdate={updateTransaction}
+              />
+            }
+          />
+        </Routes>
+      </main>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      <Footer />
+    </div>
   )
 }
 
